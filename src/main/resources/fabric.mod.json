@@ -1,0 +1,36 @@
+{
+	"schemaVersion": 1,
+	"id": "first_test",
+	"version": "${version}",
+	"name": "first_test",
+	"description": "well, no",
+	"authors": [
+		"the somestone"
+	],
+	"contact": {
+		"homepage": "https://fabricmcasdf.net/",
+		"sources": "https://githubadsf.com/FabricMC/fabric-example-mod"
+	},
+	"license": "the most popular license",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.seconddanad.first_test.FirstTest"
+		],
+		"client": [
+			"net.seconddanad.first_test.FirstTestClient"
+		]
+	},
+	"mixins": [
+		"first_test.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": "~1.20",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

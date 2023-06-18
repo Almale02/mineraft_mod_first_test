@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "net.seconddanad.first_test.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"mixins": [
+      	"CactusBlockMixin",
+		"MusicSoundMixin"
+	],
+	"client": [],
+	"server": [],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
