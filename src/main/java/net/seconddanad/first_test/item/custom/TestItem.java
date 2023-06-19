@@ -7,12 +7,16 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+
+import java.util.Objects;
+import java.util.UUID;
 
 public class TestItem extends Item {
     public TestItem(Settings settings) {
@@ -28,6 +32,7 @@ public class TestItem extends Item {
         BlockPos offsetedPosition = context.getBlockPos().offset(lookingDirection, 1);
 
         if (!context.getWorld().isClient()){
+
             if (eventWorld.getBlockState(offsetedPosition).equals(Blocks.AIR.getDefaultState())) {
                 pushBlock(lookingDirection, context.getBlockPos(), eventWorld);
             } else {
@@ -40,7 +45,7 @@ public class TestItem extends Item {
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
         if (!user.getWorld().isClient) {
-            user.kill();
+            (((ServerWorld) user.getWorld()).getEntity(entity.getUuid())).kill();
         }
 
         return ActionResult.PASS;

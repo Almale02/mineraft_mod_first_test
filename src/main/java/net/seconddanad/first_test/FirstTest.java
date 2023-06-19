@@ -1,5 +1,4 @@
 package net.seconddanad.first_test;
-
 import net.fabricmc.api.ModInitializer;
 import net.seconddanad.first_test.block.ModBlocks;
 import net.seconddanad.first_test.item.ModItems;
@@ -14,6 +13,7 @@ public class FirstTest implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        // ads
         ModItems.registerModItems();
         ModBlocks.registerModBlocks();
         ModVillagers.registerVillagers();
