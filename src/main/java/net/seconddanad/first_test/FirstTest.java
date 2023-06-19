@@ -13,7 +13,6 @@ public class FirstTest implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // ads
         ModItems.registerModItems();
         ModBlocks.registerModBlocks();
         ModVillagers.registerVillagers();
