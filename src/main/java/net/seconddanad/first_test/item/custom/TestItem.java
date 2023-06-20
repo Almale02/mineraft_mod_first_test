@@ -1,11 +1,16 @@
 package net.seconddanad.first_test.item.custom;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.*;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -23,18 +28,26 @@ public class TestItem extends Item {
     public ActionResult useOnBlock(ItemUsageContext context) {
         World eventWorld = context.getWorld();
 
+        PlayerEntity eventPlayer = context.getPlayer();
         BlockPos eventBlockPos = context.getBlockPos();
         BlockState eventBlockState = eventWorld.getBlockState(eventBlockPos);
 
-        Direction lookingDirection = context.getSide().getOpposite();
-        BlockPos offsetedPosition = eventBlockPos.offset(lookingDirection, 1);
 
         if (!context.getWorld().isClient()){
 
+            BlockEntity blockEntity = eventWorld.getBlockEntity(eventBlockPos);
 
-            BlockState blockEntity = eventWorld.getBlockState(eventBlockPos);
+            if (blockEntity instanceof SignBlockEntity) {
+                SignBlockEntity sign = ((SignBlockEntity) blockEntity);
 
-            sendMessageToPlayer(context.getPlayer(), blockEntity.toString());
+                sign.setText(sign.getText(true), false);
+                sign.getBackText().withColor(sign.getFrontText().getColor());
+                sign.getBackText().withGlowing(sign.getFrontText().isGlowing());
+
+            } else {
+                sendMessageToPlayer(eventPlayer, "not sign");
+            }
+            
         }
         return ActionResult.PASS;
     }
@@ -42,8 +55,7 @@ public class TestItem extends Item {
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
         if (!user.getWorld().isClient) {
-            sendMessageToPlayer(user, "you killed " + entity.getUuid());
-            ((ServerWorld) user.getWorld()).getEntity(entity.getUuid()).kill();
+
         }
 
         return ActionResult.PASS;
@@ -51,5 +63,9 @@ public class TestItem extends Item {
 
     private static void sendMessageToPlayer(PlayerEntity player, String message) {
         player.sendMessage(Text.of(message));
+    }
+
+    private static NbtCompound getListIndex(NbtList nbtList, int idx) {
+        return nbtList.getCompound(idx);
     }
 }
