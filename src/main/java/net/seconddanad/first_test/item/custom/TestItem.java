@@ -14,6 +14,8 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
+import net.minecraft.state.property.Property;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -34,18 +36,20 @@ public class TestItem extends Item {
         BlockPos eventBlockPos = context.getBlockPos();
         BlockState eventBlockState = eventWorld.getBlockState(eventBlockPos);
 
-
         if (!context.getWorld().isClient()){
 
             BlockEntity blockEntity = eventWorld.getBlockEntity(eventBlockPos);
 
             if (blockEntity instanceof SignBlockEntity) {
+                //Direction dir = eventBlockState.get(Properties.FACING);
+                sendMessageToPlayer(eventPlayer, "asdf");
+
+                //sendMessageToPlayer(eventPlayer, dir.toString());
                 SignBlockEntity sign = ((SignBlockEntity) blockEntity);
 
                 sign.setText(sign.getText(true), false);
                 sign.getBackText().withColor(sign.getFrontText().getColor());
                 sign.getBackText().withGlowing(sign.getFrontText().isGlowing());
-
             } else {
                 sendMessageToPlayer(eventPlayer, "not sign");
             }
@@ -57,10 +61,7 @@ public class TestItem extends Item {
     @Override
     public ActionResult useOnEntity(ItemStack eventStack, PlayerEntity eventPlayer, LivingEntity eventEntity, Hand playerHand) {
         if (!eventPlayer.getWorld().isClient) {
-            if (eventEntity instanceof PigEntity) {
-                PigEntity pig = ((PigEntity) eventEntity);
-                sendMessageToPlayer(eventPlayer, String.valueOf(pig.distanceTo(eventPlayer)));
-            }
+
         }
 
         return ActionResult.PASS;
@@ -68,9 +69,5 @@ public class TestItem extends Item {
 
     private static void sendMessageToPlayer(PlayerEntity player, String message) {
         player.sendMessage(Text.of(message));
-    }
-
-    private static NbtCompound getListIndex(NbtList nbtList, int idx) {
-        return nbtList.getCompound(idx);
     }
 }
