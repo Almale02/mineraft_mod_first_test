@@ -2,7 +2,9 @@ package net.seconddanad.first_test.item.custom;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.*;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.passive.PigEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -53,9 +55,12 @@ public class TestItem extends Item {
     }
 
     @Override
-    public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
-        if (!user.getWorld().isClient) {
-
+    public ActionResult useOnEntity(ItemStack eventStack, PlayerEntity eventPlayer, LivingEntity eventEntity, Hand playerHand) {
+        if (!eventPlayer.getWorld().isClient) {
+            if (eventEntity instanceof PigEntity) {
+                PigEntity pig = ((PigEntity) eventEntity);
+                sendMessageToPlayer(eventPlayer, String.valueOf(pig.distanceTo(eventPlayer)));
+            }
         }
 
         return ActionResult.PASS;
