@@ -13,13 +13,14 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 import net.seconddanad.first_test.FirstTest;
+import net.seconddanad.first_test.block.custom.TestBlock;
 
 public class ModBlocks {
 
     public static final Block TEST_BLOCK = registerBlock(
             "test_block",
             new Identifier("ingredients"),
-            new Block(FabricBlockSettings.create()
+            new TestBlock(FabricBlockSettings.create()
                     .sounds(BlockSoundGroup.METAL)
             ));
 
