@@ -9,6 +9,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.seconddanad.first_test.FirstTest;
+import net.seconddanad.first_test.item.custom.ConnectionMaker;
 import net.seconddanad.first_test.item.custom.TestItem;
 
 public class ModItems {
@@ -19,6 +20,14 @@ public class ModItems {
             new TestItem(new FabricItemSettings()
                     .fireproof()
                     .maxCount(16)
+    ));
+    public static final Item CONNECTION_MAKER = registerItem(
+            "connection_maker",
+            new Identifier("ingredients"),
+            new ConnectionMaker(new FabricItemSettings()
+                    .fireproof()
+                    .maxCount(1)
+
     ));
 
     public static void registerModItems() {
