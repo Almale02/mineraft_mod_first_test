@@ -43,7 +43,6 @@ public class ConnectionMaker extends Item {
                     this.connectionMode = ConnectionMode.CHILD;
                 }
                 case CHILD -> {
-                    this.parent.emptyChildren();
                     DRSConnectors.makeSingleConnection(this.parent, context.getBlockPos());
                     this.parent = null;
                     this.connectionMode = ConnectionMode.PARENT;

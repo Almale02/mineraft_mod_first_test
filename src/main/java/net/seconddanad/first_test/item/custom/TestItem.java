@@ -30,7 +30,7 @@ public class TestItem extends Item {
 
         if (!context.getWorld().isClient()){
             if (eventBlockEntity instanceof TestBlockEntity testBlockEntity) {
-                testBlockEntity.getChildren().stream().findFirst().ifPresent(childReference -> {
+                testBlockEntity.getChildren().forEach(childReference -> {
 
                     childReference.cacheReference(eventWorld);
 

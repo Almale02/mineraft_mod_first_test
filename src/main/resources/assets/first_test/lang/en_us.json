@@ -1,4 +1,6 @@
 {
   "item.first_test.test_item": "item of Test",
+  "item.first_test.connection_maker": "Connection Maker",
+  "item.first_test.connection_remover": "Connection Remover",
   "block.first_test.test_block": "block of Test"
 }

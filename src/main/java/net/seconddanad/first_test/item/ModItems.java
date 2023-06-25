@@ -10,6 +10,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.seconddanad.first_test.FirstTest;
 import net.seconddanad.first_test.item.custom.ConnectionMaker;
+import net.seconddanad.first_test.item.custom.ConnectionRemover;
 import net.seconddanad.first_test.item.custom.TestItem;
 
 public class ModItems {
@@ -29,6 +30,14 @@ public class ModItems {
                     .maxCount(1)
 
     ));
+    public static final Item CONNECTION_REMOVER = registerItem(
+            "connection_remover",
+            new Identifier("ingredients"),
+            new ConnectionRemover(new FabricItemSettings()
+                    .fireproof()
+                    .maxCount(1)
+
+            ));
 
     public static void registerModItems() {
 
