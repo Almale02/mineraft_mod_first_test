@@ -1,13 +1,15 @@
 package net.seconddanad.DanadReferenceSystem.References;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.seconddanad.DanadReferenceSystem.DRSBlockEntity;
+
+import java.util.Optional;
 
 public class DRSReference {
-    private BlockState cachedReferenceBlockState;
-    private BlockEntity cachedReferenceBlockEntity;
+    private BlockState cachedReferenceBlockStateRef;
+    private DRSBlockEntity cachedReferenceDRSBlockEntityRef;
     private BlockPos referencePos;
 
     public DRSReference(BlockPos referencePos) {
@@ -24,15 +26,15 @@ public class DRSReference {
         this.referencePos = BlockPos.fromLong(data);
     }
     public void cacheReference(World world) {
-        this.cachedReferenceBlockState = world.getBlockState(this.referencePos);
-        this.cachedReferenceBlockEntity = world.getBlockEntity(this.referencePos);
+        this.cachedReferenceBlockStateRef = world.getBlockState(this.referencePos);
+        this.cachedReferenceDRSBlockEntityRef = (DRSBlockEntity) world.getBlockEntity(this.referencePos);
     }
 
-    public BlockState getCachedReferenceBlockState() {
-        return cachedReferenceBlockState;
+    public BlockState getCachedReferenceBlockStateRef() {
+        return cachedReferenceBlockStateRef;
     }
-    public BlockEntity getCachedReferenceBlockEntity() {
-        return cachedReferenceBlockEntity;
+    public Optional<DRSBlockEntity> getCachedReferenceDRSBlockEntityRef() {
+        return Optional.ofNullable(this.cachedReferenceDRSBlockEntityRef);
     }
     public BlockPos getReferencePos() {
         return referencePos;

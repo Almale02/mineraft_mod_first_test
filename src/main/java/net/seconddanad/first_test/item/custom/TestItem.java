@@ -30,15 +30,14 @@ public class TestItem extends Item {
 
         if (!context.getWorld().isClient()){
             if (eventBlockEntity instanceof TestBlockEntity testBlockEntity) {
-                testBlockEntity.getChildren().forEach(childReference -> {
+                testBlockEntity.getParent().ifPresent(parentRef -> {
+                    sendMessageToPlayer(context.getPlayer(), parentRef.getReferencePos().toString());
+                });
+                testBlockEntity.getChildren().forEach(childRef -> {
 
-                    childReference.cacheReference(eventWorld);
+                    childRef.cacheReference(eventWorld);
 
-                    eventWorld.setBlockState(
-                            childReference.getReferencePos(),
-                            childReference.getCachedReferenceBlockState()
-                                    .getBlock().getDefaultState()
-                    );
+                    sendMessageToPlayer(context.getPlayer(), "child: " +  childRef.getReferencePos().toString());
                 });
             } else {
                 sendMessageToPlayer(eventPlayer, "not what expected");

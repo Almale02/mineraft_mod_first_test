@@ -6,10 +6,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.World;
-import net.seconddanad.DanadReferenceSystem.References.DRSBlockEntity;
+import net.seconddanad.DanadReferenceSystem.DRSBlockEntity;
 import net.seconddanad.DanadReferenceSystem.References.DRSConnectors;
-
-import static net.seconddanad.first_test.utils.PlayerMessage.sendMessageToPlayer;
 
 public class ConnectionMaker extends Item {
     ConnectionMode connectionMode = ConnectionMode.PARENT;
@@ -29,21 +27,23 @@ public class ConnectionMaker extends Item {
     public ActionResult useOnBlock(ItemUsageContext context) {
         World eventWorld = context.getWorld();
 
-
         BlockEntity eventBlockEntity = eventWorld.getBlockEntity(context.getBlockPos());
-
 
         if (!eventWorld.isClient()) {
             switch (this.connectionMode) {
                 case PARENT -> {
                     if (!(eventBlockEntity instanceof DRSBlockEntity blockEntity)) return ActionResult.FAIL;
                     this.parent = blockEntity;
-                    sendMessageToPlayer(context.getPlayer(), "adsf");
 
                     this.connectionMode = ConnectionMode.CHILD;
                 }
                 case CHILD -> {
-                    DRSConnectors.makeSingleConnection(this.parent, context.getBlockPos());
+                    if (context.getPlayer().isSneaking()) {
+                        if (!(eventBlockEntity instanceof DRSBlockEntity blockEntity)) return ActionResult.FAIL;
+                        DRSConnectors.makeDoubleConnection(parent, blockEntity);
+                    } else {
+                        DRSConnectors.makeSingleConnection(this.parent, context.getBlockPos());
+                    }
                     this.parent = null;
                     this.connectionMode = ConnectionMode.PARENT;
                 }

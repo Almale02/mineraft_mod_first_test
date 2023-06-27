@@ -6,10 +6,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.World;
-import net.seconddanad.DanadReferenceSystem.References.DRSBlockEntity;
+import net.seconddanad.DanadReferenceSystem.DRSBlockEntity;
 import net.seconddanad.DanadReferenceSystem.References.DRSConnectors;
-
-import static net.seconddanad.first_test.utils.PlayerMessage.sendMessageToPlayer;
+import net.seconddanad.DanadReferenceSystem.References.DRSReference;
 
 public class ConnectionRemover extends Item {
     ConnectionMode connectionMode = ConnectionMode.PARENT;
@@ -29,21 +28,30 @@ public class ConnectionRemover extends Item {
     public ActionResult useOnBlock(ItemUsageContext context) {
         World eventWorld = context.getWorld();
 
-
         BlockEntity eventBlockEntity = eventWorld.getBlockEntity(context.getBlockPos());
-
 
         if (!eventWorld.isClient()) {
             switch (this.connectionMode) {
                 case PARENT -> {
                     if (!(eventBlockEntity instanceof DRSBlockEntity blockEntity)) return ActionResult.FAIL;
                     this.parent = blockEntity;
-                    sendMessageToPlayer(context.getPlayer(), "adsf");
 
                     this.connectionMode = ConnectionMode.CHILD;
                 }
                 case CHILD -> {
-                    DRSConnectors.removeSingleConnection(this.parent, context.getBlockPos());
+                    if (!parent.hasConnectionWithPos(context.getBlockPos())) {
+                        this.parent = null;
+                        this.connectionMode = ConnectionMode.PARENT;
+
+                        return ActionResult.FAIL;
+                    }
+                    DRSReference childRef = parent.getChildWithPos(context.getBlockPos()).get();
+
+                    if (DRSConnectors.isDoubleConnection(parent.getPos(), childRef, eventWorld)) {
+                        DRSConnectors.removeDoubleConnection(parent, ((DRSBlockEntity) eventBlockEntity));
+                    } else {
+                        DRSConnectors.removeSingleConnection(parent, context.getBlockPos());
+                    }
                     this.parent = null;
                     this.connectionMode = ConnectionMode.PARENT;
                 }

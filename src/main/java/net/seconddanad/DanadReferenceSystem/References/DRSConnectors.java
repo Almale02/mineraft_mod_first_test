@@ -1,6 +1,10 @@
 package net.seconddanad.DanadReferenceSystem.References;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.seconddanad.DanadReferenceSystem.DRSBlockEntity;
+
+import java.util.Optional;
 
 public class DRSConnectors {
     public static <
@@ -30,5 +34,20 @@ public class DRSConnectors {
             >
     void removeSingleConnection(A parent, BlockPos childPos) {
         parent.removeChildWithPos(childPos);
+    }
+    public static boolean isDoubleConnection(BlockPos parentBlockPos, DRSReference childRef, World world) {
+        Optional<DRSBlockEntity> optionalChild = childRef.getCachedReferenceDRSBlockEntityRef();
+        childRef.cacheReference(world);
+
+        if (optionalChild.isEmpty()) {
+            return false;
+        }
+        Optional<DRSReference> optionalChildParentRef = optionalChild.get().getParent();
+
+        if (optionalChildParentRef.isEmpty()) {
+            return false;
+        }
+        return optionalChild.get().getParent().get().getReferencePos().equals(parentBlockPos);
+
     }
 }
