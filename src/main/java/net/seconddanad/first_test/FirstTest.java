@@ -7,6 +7,7 @@ import net.seconddanad.first_test.item.ModItems;
 import net.seconddanad.first_test.villager.ModVillagers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.bernie.geckolib.GeckoLib;
 
 
 public class FirstTest implements ModInitializer {
@@ -19,5 +20,6 @@ public class FirstTest implements ModInitializer {
         ModBlocks.registerModBlocks();
         ModVillagers.registerVillagers();
         ModBlockEntity.registerBlockEntities();
+        GeckoLib.initialize();
     }
 }
