@@ -1,6 +1,7 @@
 package net.seconddanad.DanadReferenceSystem;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import net.seconddanad.DanadReferenceSystem.References.DRSReference;
 import org.jetbrains.annotations.NotNull;
@@ -69,5 +70,21 @@ public class DRSReferenceHead {
 
         this.current = child.get();
         return child;
+    }
+    public Optional<DRSBlockEntity> downToRandom(World world) {
+        if (this.current.getChildren().isEmpty()) {
+            return Optional.empty();
+        }
+        DRSReference childRef = this.current.getChildren().get(
+                Random.create().nextBetween(
+                        0,
+                        this.current.getChildren().size() -1
+                ));
+        childRef.cacheReference(world);
+        if (childRef.getCachedReferenceDRSBlockEntityRef().isEmpty()) {
+            return Optional.empty();
+        }
+        this.current = childRef.getCachedReferenceDRSBlockEntityRef().get();
+        return Optional.of(childRef.getCachedReferenceDRSBlockEntityRef().get());
     }
 }

@@ -10,15 +10,16 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import net.seconddanad.DanadReferenceSystem.DRSReferenceHead;
 import net.seconddanad.first_test.block.entity.TestBlockEntity;
-
-import static net.seconddanad.first_test.utils.PlayerMessage.sendMessageToPlayer;
 
 public class TestItem extends Item {
     public TestItem(Settings settings) {
         super(settings);
     }
+    private DRSReferenceHead refHead;
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
         World eventWorld = context.getWorld();
@@ -28,22 +29,26 @@ public class TestItem extends Item {
         BlockState eventBlockState = eventWorld.getBlockState(eventBlockPos);
         BlockEntity eventBlockEntity = eventWorld.getBlockEntity(eventBlockPos);
 
-        if (!context.getWorld().isClient()){
+        if (!context.getWorld().isClient()) {
             if (eventBlockEntity instanceof TestBlockEntity testBlockEntity) {
-                testBlockEntity.getParent().ifPresent(parentRef -> {
-                    sendMessageToPlayer(context.getPlayer(), parentRef.getReferencePos().toString());
-                });
-                testBlockEntity.getChildren().forEach(childRef -> {
-
-                    childRef.cacheReference(eventWorld);
-
-                    sendMessageToPlayer(context.getPlayer(), "child: " +  childRef.getReferencePos().toString());
-                });
+                this.refHead = new DRSReferenceHead(testBlockEntity);
+                return ActionResult.PASS;
             } else {
-                sendMessageToPlayer(eventPlayer, "not what expected");
+                if (eventPlayer.isSneaking()) {
+                    this.refHead.downToRandom(eventWorld).ifPresent(child -> {
+                        BlockPos offset = child.getPos().offset(Direction.UP);
+                        eventPlayer.teleport(offset.getX(), offset.getY(), offset.getZ());
+                    });
+
+                } else {
+                    this.refHead.up(eventWorld).ifPresent(parent -> {
+                        BlockPos offset = parent.getPos().offset(Direction.UP);
+                        eventPlayer.teleport(offset.getX(), offset.getY(), offset.getZ());
+                    });
+                }
             }
         }
-        return ActionResult.PASS;
+        return ActionResult.FAIL;
     }
     @Override
     public ActionResult useOnEntity(ItemStack eventStack, PlayerEntity eventPlayer, LivingEntity eventEntity, Hand playerHand) {

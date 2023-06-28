@@ -31,6 +31,12 @@ public class ConnectionRemover extends Item {
         BlockEntity eventBlockEntity = eventWorld.getBlockEntity(context.getBlockPos());
 
         if (!eventWorld.isClient()) {
+            if (context.getPlayer().isSneaking()) {
+                if (eventBlockEntity instanceof DRSBlockEntity drsBlockEntity) {
+                    drsBlockEntity.debugConnections(context.getPlayer());
+                    return ActionResult.SUCCESS;
+                }
+            }
             switch (this.connectionMode) {
                 case PARENT -> {
                     if (!(eventBlockEntity instanceof DRSBlockEntity blockEntity)) return ActionResult.FAIL;

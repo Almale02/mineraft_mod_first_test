@@ -3,6 +3,7 @@ package net.seconddanad.DanadReferenceSystem;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.seconddanad.DanadReferenceSystem.References.DRSReference;
@@ -14,6 +15,8 @@ import java.util.Optional;
 import java.util.function.LongConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import static net.seconddanad.first_test.utils.PlayerMessage.sendMessageToPlayer;
 
 public abstract class DRSBlockEntity extends BlockEntity {
     private DRSReference parent;
@@ -48,6 +51,14 @@ public abstract class DRSBlockEntity extends BlockEntity {
     }
 
 
+    public void debugConnections(PlayerEntity player) {
+        this.getParent().ifPresent(parentRef -> {
+            sendMessageToPlayer(player, "parent: " + parentRef.getReferencePos().toString());
+        });
+        this.getChildren().forEach(childRef -> {
+            sendMessageToPlayer(player, "child: " +  childRef.getReferencePos().toString());
+        });
+    }
     public Optional<DRSReference> getChildWithPos(BlockPos pos) {
         return this.getFirstChildPredicate(child -> child.getReferencePos().equals(pos) );
     }
@@ -59,29 +70,37 @@ public abstract class DRSBlockEntity extends BlockEntity {
     }
     public void addChild(DRSReference child) {
         this.children.add(child);
+        this.markDirty();
     }
     public void removeLastChild() {
         this.children.remove(children.size() -1);
+        this.markDirty();
     }
     public boolean removeChildWithPos(BlockPos pos) {
-        return this.children.removeIf(val -> val.getReferencePos().equals(pos));
+        boolean didRemove = this.children.removeIf(val -> val.getReferencePos().equals(pos));
+        this.markDirty();
+        return didRemove;
     }
     public boolean removeFirstParentPredicate(Predicate<DRSReference> predicate) {
         Optional<DRSReference> childOption = this.getFirstChildPredicate(predicate);
         if (childOption.isPresent()) {
             this.children.remove(childOption.get());
+            this.markDirty();
             return true;
         }
         return false;
     }
     public void removeAllChildrenPredicate(Predicate<DRSReference> predicate) {
         this.children.removeIf(predicate);
+        this.markDirty();
     }
     public void emptyChildren() {
         this.children = new ArrayList<>();
+        this.markDirty();
     }
     public void removeParent() {
         this.parent = null;
+        this.markDirty();
     }
     public boolean hasConnectionWithPos(BlockPos pos) {
         return this.getChildWithPos(pos).isPresent();
@@ -92,12 +111,14 @@ public abstract class DRSBlockEntity extends BlockEntity {
         return Optional.ofNullable(parent);
     }
     public void setParent(DRSReference parent) {
+        this.markDirty();
         this.parent = parent;
     }
     public List<DRSReference> getChildren() {
         return this.children;
     }
     public void setChildren(List<DRSReference> children) {
+        this.markDirty();
         this.children = children;
     }
 }
