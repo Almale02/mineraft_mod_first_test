@@ -1,8 +1,11 @@
 package net.seconddanad.first_test;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.seconddanad.first_test.block.ModBlocks;
 import net.seconddanad.first_test.block.entity.ModBlockEntity;
+import net.seconddanad.first_test.entity.ModEntities;
+import net.seconddanad.first_test.entity.custom.TestEntity;
 import net.seconddanad.first_test.item.ModItems;
 import net.seconddanad.first_test.villager.ModVillagers;
 import org.slf4j.Logger;
@@ -21,5 +24,7 @@ public class FirstTest implements ModInitializer {
         ModVillagers.registerVillagers();
         ModBlockEntity.registerBlockEntities();
         GeckoLib.initialize();
+
+        FabricDefaultAttributeRegistry.register(ModEntities.TEST_ENTITY, TestEntity.setAttributes());
     }
 }
