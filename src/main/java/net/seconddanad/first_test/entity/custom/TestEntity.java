@@ -88,6 +88,7 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
         this.food = nbt.getInt("food");
+        this.food = nbt.getInt("food");
         super.readCustomDataFromNbt(nbt);
     }
     @Override
