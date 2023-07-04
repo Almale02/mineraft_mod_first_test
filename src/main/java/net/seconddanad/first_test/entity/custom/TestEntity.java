@@ -2,8 +2,10 @@ package net.seconddanad.first_test.entity.custom;
 
 import net.minecraft.entity.EntityData;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
+import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.ai.goal.WanderAroundGoal;
 import net.minecraft.entity.attribute.ClampedEntityAttribute;
@@ -14,9 +16,14 @@ import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.PigEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
@@ -29,6 +36,7 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.EnumSet;
 import java.util.Optional;
 
 import static net.seconddanad.first_test.utils.PlayerMessage.sendMessageToPlayer;
@@ -36,6 +44,8 @@ import static net.seconddanad.first_test.utils.PlayerMessage.sendMessageToPlayer
 public class TestEntity extends HostileEntity implements GeoEntity {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     public int food;
+    public int  maxFood;
+    public final int eatNumber = 10;
 
     public TestEntity(EntityType<? extends HostileEntity> entityType, World world) {
         super(entityType, world);
@@ -66,7 +76,8 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     @Nullable
     @Override
     public EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData, @Nullable NbtCompound entityNbt) {
-        this.food = ((int) this.getAttributeValue(TestEntityData.FOOD));
+        this.maxFood = ((int) this.getAttributeValue(TestEntityData.FOOD));
+        this.food =  this.maxFood;
         return super.initialize(world, difficulty, spawnReason, entityData, entityNbt);
     }
     @Override
@@ -85,20 +96,39 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     }
     @Override
     public void tick() {
-        Optional<? extends PlayerEntity> optionalPlayer = this.getWorld().getPlayers().stream().findFirst();
-        if (optionalPlayer.isEmpty()) {
-            return;
-        }
-
-        PlayerEntity player = optionalPlayer.get();
         if (!this.getWorld().isClient) {
+            String name = "";
             long time = this.getWorld().getTime();
-            if (time % (20 * 2) == 0) {
-                this.food = Math.max(this.food -1, 0);
-                sendMessageToPlayer(player, String.valueOf(this.food));
+
+            if (time % 20 * 5 == 0 && this.food < 25) {
+                while (this.getMainHandStack().getCount() > 0 && this.food < 100) {
+                    this.food += Math.min(
+                            this.eatNumber,
+                            this.maxFood - this.food);
+                    this.getMainHandStack().increment(-1);
+                }
             }
+
+            if (time % (10) == 0) {
+                this.food = Math.max(this.food -1, 0);
+            }
+            name += " " + this.food + " " + this.getMainHandStack().getCount();
+            this.setCustomName(Text.of(name));
         }
         super.tick();
+    }
+
+    @Override
+    protected ActionResult interactMob(PlayerEntity player, Hand hand) {
+        if (player.getWorld().isClient || hand == Hand.OFF_HAND) return ActionResult.CONSUME;
+        sendMessageToPlayer(player, "food level =" + this.food);
+        sendMessageToPlayer(player, "egg =" + this.getMainHandStack().getCount());
+        if (this.getMainHandStack().getCount() == 0) {
+            this.setStackInHand(Hand.MAIN_HAND, new ItemStack(Items.EGG));
+        } else {
+            this.getMainHandStack().increment(1);
+        }
+        return super.interactMob(player, hand);
     }
 
     //ANIMATION//
@@ -110,11 +140,11 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.cache;
     }
-}
-class TestEntityData {
-    public static final EntityAttribute FOOD = register("hunger.food", new ClampedEntityAttribute("attribute.name.hunger.food", 10, 0, 100).setTracked(true));
+    static class TestEntityData {
+        public static final EntityAttribute FOOD = register("hunger.food", new ClampedEntityAttribute("attribute.name.hunger.food", 10, 0, 100).setTracked(true));
 
-    private static EntityAttribute register(String id, EntityAttribute attribute) {
-        return Registry.register(Registries.ATTRIBUTE, id, attribute);
+        private static EntityAttribute register(String id, EntityAttribute attribute) {
+            return Registry.register(Registries.ATTRIBUTE, id, attribute);
+        }
     }
 }
