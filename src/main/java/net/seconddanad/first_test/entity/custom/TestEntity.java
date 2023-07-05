@@ -4,10 +4,7 @@ import net.minecraft.entity.EntityData;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.entity.ai.goal.WanderAroundGoal;
+import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.ClampedEntityAttribute;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttribute;
@@ -25,10 +22,12 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
+import net.seconddanad.GoalPool.GoalPool;
 import net.seconddanad.first_test.FirstTest;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -36,6 +35,7 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
@@ -45,6 +45,7 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     public int food;
     public int  maxFood;
     public final int eatNumber = 10;
+    private GoalPool mainPool;
 
     public TestEntity(EntityType<? extends HostileEntity> entityType, World world) {
         super(entityType, world);
@@ -65,10 +66,13 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     }
     @Override
     protected void initGoals() {
-        this.goalSelector.add(0, new PickUpFoodGoal(this));
-        this.goalSelector.add(1, new MeleeAttackGoal(this, 1.2 / 2, false));
-        this.goalSelector.add(2, new WanderAroundGoal(this, 1.3 / 2));
+        mainPool = new GoalPool();
 
+        mainPool.addGoal(0, new PickUpFoodGoal(this));
+        mainPool.addGoal(1, new MeleeAttackGoal(this, 1.2 / 2, false));
+        mainPool.addGoal(2, new WanderAroundGoal(this, 1.3 / 2));
+
+        mainPool.activateGoals(this.targetSelector);
         this.targetSelector.add(1, new ActiveTargetGoal<>(this, PigEntity.class, false));
         super.initGoals();
     }
@@ -93,6 +97,10 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     }
     @Override
     public void tickMovement() {
+        long time = this.getWorld().getTime();
+        if (time % (10) == 0) {
+            this.food = Math.max(this.food -1, 0);
+        }
         super.tickMovement();
     }
     @Override
@@ -102,7 +110,7 @@ public class TestEntity extends HostileEntity implements GeoEntity {
             long time = this.getWorld().getTime();
 
             if (time % 20 * 5 == 0 && this.food < 25) {
-                while (this.getMainHandStack().getCount() > 0 && this.food < 100) {
+                while (this.getMainHandStack().isOf(Items.AIR) && this.food < 100) {
                     this.food += Math.min(
                             this.eatNumber,
                             this.maxFood - this.food);
@@ -110,10 +118,10 @@ public class TestEntity extends HostileEntity implements GeoEntity {
                 }
             }
 
-            if (time % (10) == 0) {
-                this.food = Math.max(this.food -1, 0);
-            }
-            name += " " + this.food + " " + this.getMainHandStack().getCount() + " " + this.getMainHandStack().isOf(Items.PORKCHOP);
+            name += " " + this.food +
+                    " " + this.getMainHandStack().getCount() +
+                    " " + this.getVelocity() +
+                    " " + this.getMainHandStack().getItem().getName().getString();
             this.setCustomName(Text.of(name));
         }
         super.tick();
@@ -122,7 +130,7 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     @Override
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
         if (player.getWorld().isClient || hand == Hand.OFF_HAND) return ActionResult.CONSUME;
-        if (this.getMainHandStack().getCount() == 0) {
+        if (this.getMainHandStack().isOf(Items.AIR)) {
             this.setStackInHand(Hand.MAIN_HAND, new ItemStack(Items.COOKED_PORKCHOP));
         } else {
             this.getMainHandStack().increment(1);
@@ -183,6 +191,9 @@ public class TestEntity extends HostileEntity implements GeoEntity {
                 entity.lookAtEntity(nextFood, 60, 100);
                 entity.getNavigation().startMovingTo(nextFood, 1.1f);
                 if (entity.distanceTo(nextFood) <= 2) {
+                    if (!entity.getMainHandStack().isOf(Items.PORKCHOP)) {
+                        entity.setStackInHand(Hand.MAIN_HAND, new ItemStack(Items.PORKCHOP));
+                    }
                     nextFood.kill();
                     entity.getMainHandStack().increment(Math.min(nextFood.getStack().getCount(), 64 - entity.getMainHandStack().getCount()));
                 }
