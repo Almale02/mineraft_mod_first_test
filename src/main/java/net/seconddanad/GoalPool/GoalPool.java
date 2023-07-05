@@ -19,7 +19,7 @@ public class GoalPool {
         goals.add(new GoalPair<>(priority, goal));
     }
     public void activateGoals(GoalSelector selector) {
-        selector.clear(x -> true);
+        selector.getGoals().forEach(selector::remove);
         goals.forEach(val -> selector.add(val.priority(), val.goal()));
     }
 }
