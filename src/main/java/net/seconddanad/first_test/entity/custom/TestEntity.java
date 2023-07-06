@@ -40,7 +40,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
+
+import static net.seconddanad.first_test.utils.PlayerMessage.sendMessageToPlayer;
 
 public class TestEntity extends HostileEntity implements GeoEntity {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -81,17 +84,15 @@ public class TestEntity extends HostileEntity implements GeoEntity {
         mainPool = new GoalPool();
         waitingFoodPool = new GoalPool();
 
-        mainPool.addGoal(0, pickUpFoodGoal);
         mainPool.addGoal(1, wanderAroundGoal);
-
-        //mainPool.addGoal(1, new MeleeAttackGoal(this, 1.2 / 2, false));
+        mainPool.addGoal(0, pickUpFoodGoal);
+        //mainPool.addGoal(1, meleeAttackGoal);
 
         waitingFoodPool.addGoal(0, pickUpFoodGoal);
         waitingFoodPool.addGoal(1, meleeAttackGoal);
 
-        waitingFoodPool.activateGoals(goalSelector);
         mainPool.activateGoals(goalSelector);
-        goalSelector.remove(meleeAttackGoal);
+        //waitingFoodPool.activateGoals(goalSelector);
         this.targetSelector.add(1, new ActiveTargetGoal<>(this, PigEntity.class, false));
         super.initGoals();
     }
@@ -126,23 +127,35 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     @Override
     public void tick() {
         if (!this.getWorld().isClient) {
+            Optional<? extends PlayerEntity> optionalPlayer = this.getWorld().getPlayers().stream().findFirst();
+            if (getTarget() != null) {
+                optionalPlayer.ifPresent(player -> sendMessageToPlayer(player, getTarget().getType().getTranslationKey()));
+            }
             String name = "";
             long time = this.getWorld().getTime();
-
-            /*if (food < 25 && this.getMainHandStack().getCount() == 0) {
-                FirstTest.LOGGER.info("32");
+            /////////
+            if (food < 25 && this.getMainHandStack().getCount() == 0) {
                 if (!waitingFood) {
                     waitingFood = true;
+                    //goalSelector.getGoals().removeIf(x -> true);
+                    goalSelector.remove(wanderAroundGoal);
+                    goalSelector.remove(meleeAttackGoal);
+                    goalSelector.add(0, pickUpFoodGoal);
+                    goalSelector.add(1, meleeAttackGoal);
                     waitingFoodPool.activateGoals(goalSelector);
                 }
             } else {
-                FirstTest.LOGGER.info("4234");
                 if (waitingFood) {
                     waitingFood = false;
+                    //goalSelector.getGoals().removeIf(x -> true); // this is the problem and also up there. TODO: create GoalPoolManager should remove and add like the example below which works.
+                    goalSelector.remove(pickUpFoodGoal);
+                    goalSelector.remove(meleeAttackGoal);
+                    goalSelector.add(0, pickUpFoodGoal);
+                    goalSelector.add(1, wanderAroundGoal);
                     mainPool.activateGoals(goalSelector);
                 }
-            }*/
-
+            }
+            ///////////////
             if (time % 20 * 5 == 0 && this.food < 25) {
                 while (this.getMainHandStack().isOf(Items.PORKCHOP) && this.food < 100) {
                     this.food += Math.min(
@@ -156,7 +169,9 @@ public class TestEntity extends HostileEntity implements GeoEntity {
                     " " + this.getMainHandStack().getCount() +
                     " " + Arrays.toString(goalSelector.getRunningGoals().toArray()) +
                     " " + waitingFood +
-                    " " + goalSelector.getGoals().toArray().length;
+                    " " + goalSelector.getGoals().toArray().length +
+                    " " + goalSelector.getGoals().stream().findFirst().get().getGoal().toString();
+
                     this.setCustomName(Text.of(name));
         }
         super.tick();
@@ -166,6 +181,13 @@ public class TestEntity extends HostileEntity implements GeoEntity {
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
         if (player.getWorld().isClient || hand == Hand.OFF_HAND) return ActionResult.CONSUME;
         food = 30;
+        if (waitingFood) {
+            waitingFood = false;
+            mainPool.activateGoals(goalSelector);
+        } else {
+            waitingFood = true;
+            waitingFoodPool.activateGoals(goalSelector);
+        }
         return super.interactMob(player, hand);
     }
 
@@ -196,6 +218,10 @@ public class TestEntity extends HostileEntity implements GeoEntity {
         @Override
         public boolean canStart() {
             nearbyFood = getNearbyFood();
+            Optional<? extends PlayerEntity> optionalPlayer = entity.getWorld().getPlayers().stream().findFirst();
+            optionalPlayer.ifPresent(player -> sendMessageToPlayer(player,
+                    String.valueOf(!nearbyFood.isEmpty() && entity.getMainHandStack().getCount() < 64)));
+
 
             return !nearbyFood.isEmpty() && entity.getMainHandStack().getCount() < 64;
         }
